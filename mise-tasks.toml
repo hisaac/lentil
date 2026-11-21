@@ -1,0 +1,6 @@
+[check]
+alias = ["chk"]
+run = "xcrun swift-format lint --recursive Lentil LentilUITests Tests"
+
+[fix]
+run = "xcrun swift-format format --in-place --recursive Lentil LentilUITests Tests"
