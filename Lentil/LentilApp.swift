@@ -21,7 +21,7 @@ struct LoanList: View {
     private var loans: [Loan] {
         store.loans.filter { ($0.remaining == 0) == history }.sorted {
             if history { return $0.returns.last!.date > $1.returns.last!.date }
-            return $0.due < $1.due
+            return ($0.due ?? .distantFuture) < ($1.due ?? .distantFuture)
         }
     }
 
@@ -45,8 +45,10 @@ struct LoanList: View {
                                     Text(loan.person)
                                     if history, let last = loan.returns.last {
                                         Text("Returned \(last.date, format: dateStyle)")
+                                    } else if let due = loan.due {
+                                        Text("\(loan.display(loan.remaining)) left · Due \(due, format: dateStyle)")
                                     } else {
-                                        Text("\(loan.display(loan.remaining)) left · Due \(loan.due, format: dateStyle)")
+                                        Text("\(loan.display(loan.remaining)) left")
                                     }
                                 }
                                 .font(.subheadline)
@@ -94,7 +96,7 @@ struct LoanDetail: View {
                     LabeledContent("Original amount", value: loan.display(loan.amount))
                     LabeledContent("Remaining", value: loan.display(loan.remaining))
                     LabeledContent("Start date", value: loan.start.formatted(dateStyle))
-                    LabeledContent("Due date", value: loan.due.formatted(dateStyle))
+                    if let due = loan.due { LabeledContent("Due date", value: due.formatted(dateStyle)) }
                     if !loan.note.isEmpty { LabeledContent("Note", value: loan.note) }
                 }
                 Section("Returns") {

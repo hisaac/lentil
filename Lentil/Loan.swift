@@ -43,7 +43,7 @@ struct Loan: Identifiable, Codable {
     let amount: Decimal
     let currency: String
     let start: Date
-    let due: Date
+    let due: Date?
     let note: String
     var returns: [LoanReturn] = []
 

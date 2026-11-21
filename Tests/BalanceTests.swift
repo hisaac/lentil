@@ -22,6 +22,11 @@ struct BalanceTests {
         precondition(apples.balance(on: day(30)) == 1)
         let restored = try JSONDecoder().decode(Loan.self, from: JSONEncoder().encode(apples))
         precondition(restored.balance(on: day(30)) == 1)
+        precondition(restored.due == day(1))
+        var fields = try JSONSerialization.jsonObject(with: JSONEncoder().encode(apples)) as! [String: Any]
+        fields.removeValue(forKey: "due")
+        let undated = try JSONDecoder().decode(Loan.self, from: JSONSerialization.data(withJSONObject: fields))
+        precondition(undated.due == nil)
         print("Balance and storage round-trip checks passed")
     }
 }

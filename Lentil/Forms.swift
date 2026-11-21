@@ -21,6 +21,7 @@ struct NewLoan: View {
     @State private var amount = ""
     @State private var currency = "USD"
     @State private var start = LoanDay.today
+    @State private var hasDueDate = false
     @State private var due = LoanDay.calendar.date(byAdding: .day, value: 7, to: LoanDay.today)!
     @State private var note = ""
     @State private var error: String?
@@ -28,10 +29,11 @@ struct NewLoan: View {
     private var loan: Loan? {
         let person = person.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let quantity = kind == .item && amount.isEmpty ? "1" : amount
         guard !person.isEmpty, kind == .money || !name.isEmpty,
-              let value = amountValue(amount, kind: kind, locale: locale), due >= start else { return nil }
+              let value = amountValue(quantity, kind: kind, locale: locale) else { return nil }
         return Loan(direction: direction, kind: kind, name: kind == .item ? name : "", person: person,
-                    amount: value, currency: currency, start: start, due: due, note: note)
+                    amount: value, currency: currency, start: start, due: hasDueDate ? due : nil, note: note)
     }
 
     var body: some View {
@@ -46,7 +48,9 @@ struct NewLoan: View {
                     }.pickerStyle(.segmented)
                     TextField(direction == .lent ? "Lent to" : "Borrowed from", text: $person)
                     if kind == .item { TextField("Item name", text: $name) }
-                    TextField(kind == .money ? "Amount" : "Quantity", text: $amount).keyboardType(.decimalPad)
+                    TextField(kind == .money ? "Amount" : "Quantity (default 1)", text: $amount)
+                        .accessibilityLabel(kind == .money ? "Amount" : "Quantity")
+                        .keyboardType(.decimalPad)
                     if kind == .money {
                         Picker("Currency", selection: $currency) {
                             ForEach(["USD", "CAD", "EUR", "GBP", "AUD"], id: \.self) { Text($0) }
@@ -56,7 +60,10 @@ struct NewLoan: View {
                 Section {
                     DatePicker("Start date", selection: $start, in: ...LoanDay.today, displayedComponents: .date)
                         .onChange(of: start) { _, date in due = max(due, date) }
-                    DatePicker("Due date", selection: $due, in: start..., displayedComponents: .date)
+                    Toggle("Set due date", isOn: $hasDueDate)
+                    if hasDueDate {
+                        DatePicker("Due date", selection: $due, in: start..., displayedComponents: .date)
+                    }
                 }
                 Section { TextField("Note (optional)", text: $note, axis: .vertical) }
                 if let error { Text(error).foregroundStyle(.red) }
