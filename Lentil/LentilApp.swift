@@ -90,6 +90,7 @@ struct LoanDetail: View {
             List {
                 Section {
                     LabeledContent(loan.direction.rawValue, value: loan.person)
+                    if loan.kind == .money { LabeledContent("Currency", value: loan.currency) }
                     LabeledContent("Original amount", value: loan.display(loan.amount))
                     LabeledContent("Remaining", value: loan.display(loan.remaining))
                     LabeledContent("Start date", value: loan.start.formatted(dateStyle))
